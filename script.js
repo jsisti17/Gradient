@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getVibrantColors(imageData) {
         const colors = [];
-        const buckets = new Map(); // Store colors in buckets for clustering
+        const buckets = new Map();
         
         // Sample colors from the image
         for (let i = 0; i < imageData.data.length; i += 4) {
@@ -163,19 +163,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const g = imageData.data[i + 1];
             const b = imageData.data[i + 2];
             
-            // Skip whites, blacks, and grays
+            // Skip grays and very dark colors
             const isGrayish = Math.abs(r - g) < 20 && Math.abs(g - b) < 20 && Math.abs(r - b) < 20;
-            const isTooLight = r > 250 && g > 250 && b > 250;
-            const isTooLow = r < 5 && g < 5 && b < 5;
+            const isTooLow = r < 30 || g < 30 || b < 30;
             
-            if (!isGrayish && !isTooLight && !isTooLow) {
+            if (!isGrayish && !isTooLow) {
                 // Calculate color saturation
                 const max = Math.max(r, g, b);
                 const min = Math.min(r, g, b);
                 const saturation = (max - min) / max;
                 
-                // Only keep vibrant colors
-                if (saturation > 0.4) {
+                // Only keep highly saturated colors
+                if (saturation > 0.7) {
                     const key = `${Math.round(r/10)},${Math.round(g/10)},${Math.round(b/10)}`;
                     if (!buckets.has(key)) {
                         buckets.set(key, { r, g, b, count: 0 });
@@ -185,12 +184,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Convert buckets to array and sort by frequency
+        // Get the most vibrant colors
         const sortedColors = Array.from(buckets.values())
             .sort((a, b) => b.count - a.count)
-            .slice(0, 10); // Get top 10 most frequent colors
+            .slice(0, 10);
         
-        // Find the two most contrasting colors from the top colors
+        // Find the two most contrasting colors
         let maxContrast = 0;
         let bestPair = [sortedColors[0], sortedColors[1]];
         
